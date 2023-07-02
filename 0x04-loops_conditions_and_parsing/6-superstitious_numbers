@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
-# This script displays number 1 to 20 at 4, 5, & 17 they display different bad lucks
-
+# This script displays number 1 to 20 at 4, 9, & 17 they display different bad lucks
 
 i=0
-
 while [ $i -le 20 ]
 	do
 		echo "$i"
@@ -13,6 +11,4 @@ while [ $i -le 20 ]
 		"17") echo "bad luck from Italy";;
 		esac
 		((i++))
-
 		done
-
