@@ -1,10 +1,51 @@
 #!/usr/bin/env bash
 # Configure Nginx so that its HTTP response contains a custom header
 # (on web-01 and web-02)
-sudo apt-get -y update
-sudo apt-get -y install nginx
-echo "Hello World!" > /var/www/html/index.nginx-debian.html
-echo "Ceci n'est pas une page" > /usr/share/nginx/html/custom_404.html
-sed -i "s/server_name _;/server_name _;\n\trewrite ^\/redirect_me https:\/\/github.com\/Tolulope05 permanent;\n\n\terror_page 404 \/custom_404.html;\n\tlocation = \/custom_404.html {\n\t\troot \/usr\/share\/nginx\/html;\n\t\tinternal;\n\t}/" /etc/nginx/sites-available/default
-sed -i "s/include \/etc\/nginx\/sites-enabled\/\*;/include \/etc\/nginx\/sites-enabled\/\*;\n\tadd_header X-Served-By \"$HOSTNAME\";/" /etc/nginx/nginx.conf
-sudo service nginx start
+sudo apt update
+
+# Install Nginx
+sudo apt install -y nginx
+
+# Define the custom header name
+header_name="X-Served-By"
+
+# Get the hostname of the server
+header_value=$(hostname)
+
+# Configure Nginx to add the custom header
+cat <<EOL | sudo tee /etc/nginx/sites-available/custom_response_header > /dev/null
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+
+    server_name _;
+
+    location / {
+        add_header $header_name $header_value;
+        root /var/www/html;
+        index index.html;
+    }
+}
+EOL
+
+# Create a symbolic link to enable the site
+sudo ln -s /etc/nginx/sites-available/custom_response_header /etc/nginx/sites-enabled/
+
+# Remove default Nginx configuration
+sudo rm /etc/nginx/sites-enabled/default
+
+# Test Nginx configuration
+sudo nginx -t
+
+# Reload Nginx to apply the changes
+sudo systemctl reload nginx
+
+# Verify the custom header
+curl -Is localhost | grep $header_name
+
+# Allow incoming HTTP traffic through the firewall
+sudo ufw allow 'Nginx HTTP'
+
+# Enable the firewall
+sudo ufw --force enable
+
