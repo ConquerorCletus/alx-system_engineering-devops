@@ -15,7 +15,7 @@ function check_subdomain {
 	dig "${2}"."$1" | grep -A1 'ANSWER SECTION:' | \
 	awk 'FNR == 2 {printf "The subdomain %s is a %s record and points to %s\n", var, $4, $5}' var="$2"
 }
-# Main script
+# Main script program
 if [ $# -lt 1 ]
 then
 	echo "*** Provide domain name ***"
