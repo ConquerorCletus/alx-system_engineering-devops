@@ -50,5 +50,6 @@ backend conquerordev-backend
 listen http-in
     bind :80
     balance roundrobin
-    server 274841-web-01 18.206.202.25:80 check
+	redirect scheme https code 301 if !{ ssl_fc }
+	server 274841-web-01 18.206.202.25:80 check
     server 274841-web-02 100.25.12.229:80 check
