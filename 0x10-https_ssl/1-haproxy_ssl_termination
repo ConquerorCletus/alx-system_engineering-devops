@@ -35,6 +35,9 @@ defaults
 frontend conquerordev.tech-https-frontend
     bind *:80
     mode http
+    option httplog
+    option forwardfor
+    http-request set-header User-Agent MyCustomUserAgent
     bind *:443 ssl crt /etc/letsencrypt/live/www.conquerordev.tech/conquerordev.tech.pem
     default_backend conquerordev-backend
 
