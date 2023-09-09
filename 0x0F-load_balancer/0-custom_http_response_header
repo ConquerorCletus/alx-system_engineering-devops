@@ -1,51 +1,30 @@
 #!/usr/bin/env bash
-# Configure Nginx so that its HTTP response contains a custom header
-# (on web-01 and web-02)
-sudo apt update
-
+# This cofigures web-01 to be like web-02 and set custom headers
 # Install Nginx
-sudo apt install -y nginx
+sudo apt update
+sudo apt -y install nginx
 
-# Define the custom header name
-header_name="X-Served-By"
+# Create a custom page
+echo "Hello World!" | sudo tee /var/www/html/index.html
 
-# Get the hostname of the server
-header_value=$(hostname)
+# Create redirection for /redirect_me
+sudo sed -i "/^\tlocation \/ {/a \ \t\trewrite ^/redirect_me \$scheme://youtube.com/@ConquerorDevs?si=FnVhOo1Z-EHSWxbQ permanent;" /etc/nginx/sites-available/default
 
-# Configure Nginx to add the custom header
-cat <<EOL | sudo tee /etc/nginx/sites-available/custom_response_header > /dev/null
-server {
-    listen 80 default_server;
-    listen [::]:80 default_server;
+# Create custom 404 settings and custom 404 page
+echo -e "\n\terror_page 404 /custom_404.html;\n\n\tlocation = /custom_404.html {\n\t\troot /usr/share/nginx/html;\n\t\tinternal;\n\t}" | sudo tee mysettings > /dev/null
+sudo sed -i "/^\tserver_name _;/r mysettings" /etc/nginx/sites-available/default
+rm mysettings
+echo "Ceci n'est pas une page" | sudo tee /usr/share/nginx/html/custom_404.html > /dev/null
 
-    server_name _;
+# Create custom HTTP header identifying server hostname
+hostname=$(hostname)
+sudo sed -i "/^\tlocation \/ {/a \ \t\tadd_header X-Served-By \"$hostname\";" /etc/nginx/sites-available/default
+unset hostname
 
-    location / {
-        add_header $header_name $header_value;
-        root /var/www/html;
-        index index.html;
-    }
-}
-EOL
-
-# Create a symbolic link to enable the site
-sudo ln -s /etc/nginx/sites-available/custom_response_header /etc/nginx/sites-enabled/
-
-# Remove default Nginx configuration
-sudo rm /etc/nginx/sites-enabled/default
-
-# Test Nginx configuration
-sudo nginx -t
-
-# Reload Nginx to apply the changes
-sudo systemctl reload nginx
-
-# Verify the custom header
-curl -Is localhost | grep $header_name
-
-# Allow incoming HTTP traffic through the firewall
+# Allow HTTP connection through the firewall
 sudo ufw allow 'Nginx HTTP'
 
-# Enable the firewall
-sudo ufw --force enable
+# Start and restart Nginx
+sudo service nginx start
+sudo service nginx restart
 
