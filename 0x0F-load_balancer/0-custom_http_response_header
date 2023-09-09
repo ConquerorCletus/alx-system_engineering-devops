@@ -39,13 +39,3 @@ sudo nginx -t
 
 # Reload Nginx to apply the changes
 sudo systemctl reload nginx
-
-# Verify the custom header
-curl -Is localhost | grep $header_name
-
-# Allow incoming HTTP traffic through the firewall
-sudo ufw allow 'Nginx HTTP'
-
-# Enable the firewall
-sudo ufw --force enable
-
