@@ -1,0 +1,16 @@
+#!/bin/bash
+# How i configure my firewalls on web-01 and web-02
+# This turns on the firewalls
+sudo ufw enable
+
+# enables port 22 responsible for SSH connection to server
+sudo ufw allow 22
+
+# enables port 80 for transmitting web content
+sudo ufw allow 80
+
+# enables port 443 for HTTPS
+sudo ufw allow 443
+
+# checks firewall status
+sudo ufw status
